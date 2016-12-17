@@ -157,7 +157,7 @@ timer_update(_Req, _Resp, _Class,
 
 timer_update(_Req, _Resp, _Class, Dialog, Call) ->
     #dialog{id=DialogId, invite=Invite, meta = Meta} = Dialog,
-    #invite{retrans_timer=RetransTimer, timeout_timer=TimeoutTimer} = Invite,
+    #invite{retrans_timer=RetransTimer, timeout_timer=TimeoutTimer, status=DialogStatus} = Invite,
     RefreshTimer = nksip_lib:get_value(nksip_timers_refresh, Meta),
     nksip_lib:cancel_timer(RetransTimer),
     nksip_lib:cancel_timer(TimeoutTimer),
@@ -165,11 +165,29 @@ timer_update(_Req, _Resp, _Class, Dialog, Call) ->
     #call{timers=#call_timers{t1=T1}} = Call,
     Meta1 = nksip_lib:delete(Meta, [nksip_timers_se, nksip_timers_refresh]),
     Meta2 = [{nksip_timers_se, undefined}, {nksip_timers_refresh, undefined}|Meta1],
-    Invite1 = Invite#invite{
-        retrans_timer = undefined,
-        timeout_timer = start_timer(64*T1, invite_timeout, DialogId)        
-    },
-    Dialog#dialog{invite=Invite1, meta=Meta2}.
+
+
+  %% ?call_notice("timer_update state ~s class ~s ", [DialogStatus, Class]),
+  %% Bug Fix
+  %% RFC3261  When in either the "Calling" or "Proceeding" states,
+  %% ... The client transaction SHOULD start timer D
+  %% Client, not server!
+  %% I set 5 min, For proxy Timer C happens before
+
+    case  DialogStatus of
+      proceeding_uas ->
+        Invite1 = Invite#invite{
+         retrans_timer = undefined,
+          timeout_timer = start_timer(1000*60*5, invite_timeout, DialogId) %% 5 min
+        };
+      _ ->
+        Invite1 = Invite#invite{
+          retrans_timer = undefined,
+          timeout_timer = start_timer(64*T1, invite_timeout, DialogId)
+        }
+    end,
+
+Dialog#dialog{invite=Invite1, meta=Meta2}.
 
 
 %% @private
