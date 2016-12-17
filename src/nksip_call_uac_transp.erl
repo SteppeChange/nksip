@@ -51,10 +51,12 @@ send_request(Req, Opts) ->
             DestUri = RUri1 = RUri,
             Routes1 = [];
         [#uri{opts=RouteOpts}=TopRoute|RestRoutes] ->
-            case lists:member(<<"lr">>, RouteOpts) of
-                true ->     
-                    DestUri = TopRoute#uri{
-                        scheme = case RUri#uri.scheme of
+            %% TO DO looks like bug
+            Lr = lists:member(<<"lr">>, RouteOpts) or lists:member({<<"lr">>,<<"on">>}, RouteOpts),
+            case Lr of
+                true ->
+                  DestUri = TopRoute#uri{
+		    scheme = case RUri#uri.scheme of
                             sips -> sips;
                             _ -> TopRoute#uri.scheme
                         end
