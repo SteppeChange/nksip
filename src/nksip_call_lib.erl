@@ -211,7 +211,7 @@ timeout_timer(Tag, Trans, Call)
                  Tag==noinvite ->
     cancel_timer(Trans#trans.timeout_timer),
     #call{timers=#call_timers{t1=T1}} = Call,
-    Trans#trans{timeout_timer=start_timer(64*T1, Tag, Trans)};
+    Trans#trans{timeout_timer=start_timer(16*T1, Tag, Trans)};
 
 timeout_timer(timer_d, Trans, _) ->
     cancel_timer(Trans#trans.timeout_timer),
