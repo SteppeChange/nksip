@@ -335,7 +335,8 @@ write(AppId, File, Msg) ->
     Time = nksip_lib:l_timestamp_to_float(nksip_lib:l_timestamp()), 
     case File of
         console ->
-            io:format("\n        ---- ~f ~s", [Time, Msg]);
+          lager:notice("\n        ---- ~f ~s", [Time, Msg]);
+          %% io:format("\n        ---- ~f ~s", [Time, Msg]);
         _ ->
             case nksip_config:get({nksip_trace_file, AppId}) of
                 {File, Device} ->
